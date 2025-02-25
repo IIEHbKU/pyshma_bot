@@ -32,6 +32,8 @@ services:
       MINIO_ROOT_USER: mikhalexandr
       MINIO_ROOT_PASSWORD: phptop123
     command: server /data --console-address ":9002"
+    volumes:
+      - minio_data:/data
 
   adminer:
     image: adminer
@@ -46,3 +48,4 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  minio_data:

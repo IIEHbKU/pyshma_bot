@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from core.postgres.initialization import Base
 
@@ -8,8 +8,4 @@ class ObjectModel(Base):
 
     id: Mapped[str] = mapped_column(primary_key=True)
     name: Mapped[str]
-
-    reports = relationship(
-        "ReportModel",
-        back_populates="object"
-    )
+    reports_count: Mapped[int]

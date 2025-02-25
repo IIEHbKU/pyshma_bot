@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     minio_access_key: str = Field(..., env="MINIO_ACCESS_KEY")
     minio_secret_key: str = Field(..., env="MINIO_SECRET_KEY")
     minio_secure: bool = Field(..., env="MINIO_SECURE")
+    minio_bucket: str = Field(..., env="MINIO_BUCKET")
 
     roboflow_api_url: str = Field(..., env="ROBOFLOW_API_URL")
     roboflow_api_key: str = Field(..., env="ROBOFLOW_API_KEY")
