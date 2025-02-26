@@ -12,7 +12,7 @@ services:
     ports:
       - "5252:5252"
     depends_on:
-      - database
+      - postgres
 
   postgres:
     image: postgres
