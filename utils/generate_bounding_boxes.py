@@ -28,7 +28,7 @@ async def generate_bounding_boxes(redis_client, image, reports_count, boxes):
         cv2.rectangle(image, (x, y - text_height - 5), (x + text_width, y), color, -1)
         cv2.putText(image, text, (x, y - 5), cv2.FONT_HERSHEY_DUPLEX, 0.4, (255, 255, 255), 1)
 
-        output_file = f"./assets/report_{reports_count}.png"
-        cv2.imwrite(output_file, image)
+    output_file = f"./assets/Report_#{reports_count}.png"
+    cv2.imwrite(output_file, image)
 
-        return output_file
+    return output_file

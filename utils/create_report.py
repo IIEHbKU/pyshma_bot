@@ -1,6 +1,6 @@
+import io
 import os
 
-import aiofiles
 import cv2
 
 from core.minio.access import get_minio
@@ -23,8 +23,6 @@ async def resize_image(image, max_width, max_height):
 
 
 async def create_report(folder, image_url, reports_count):
-    reports_count += 1
-
     roboflow_client = await get_roboflow()
     redis_client = await get_redis()
     minio_client = await get_minio()
@@ -35,35 +33,39 @@ async def create_report(folder, image_url, reports_count):
     result = await roboflow_client.infer_async(image, model_id=settings.roboflow_model_id)
 
     filename_txt = await generate_txt_report(folder, reports_count, result)
-    async with aiofiles.open(filename_txt, 'r') as text_file:
-        text_data = await text_file.read()
-    await minio_client.put_object(
-        Bucket=settings.minio_bucket,
-        Key=f"{folder}/{os.path.basename(filename_txt)}",
-        Body=text_data.encode('utf-8'),
-        ContentType='text/plain'
+    with open(filename_txt, 'r', encoding='utf-8') as text_file:
+        text_data = text_file.read()
+    text_data_bytes = io.BytesIO(text_data.encode('utf-8'))
+    minio_client.put_object(
+        bucket_name=settings.minio_bucket,
+        object_name=f"{folder}/{os.path.basename(filename_txt)}",
+        data=text_data_bytes,
+        length=len(text_data_bytes.getvalue()),
+        content_type='text/plain'
     )
-
+    print(result)
+    filename_png = None
     if 'predictions' in result:
-        filename_png = generate_bounding_boxes(redis_client, image, reports_count, result['predictions'])
-        async with aiofiles.open(filename_png, 'rb') as image_file:
-            image_data = await image_file.read()
-        await minio_client.put_object(
-            Bucket=settings.minio_bucket,
-            Key=f"{folder}/{os.path.basename(filename_png)}",
-            Body=image_data,
-            ContentType='image/png'
+        filename_png = await generate_bounding_boxes(redis_client, image, reports_count, result['predictions'])
+        with open(filename_png, 'rb') as image_file:
+            image_data = image_file.read()
+        image_data_bytes = io.BytesIO(image_data)
+        minio_client.put_object(
+            bucket_name=settings.minio_bucket,
+            object_name=f"{folder}/{os.path.basename(filename_png)}",
+            data=image_data_bytes,
+            length=len(image_data),
+            content_type='image/png'
         )
-        os.remove(filename_png)
     else:
-        async with aiofiles.open(image_url, 'rb') as image_file:
-            image_data = await image_file.read()
-        await minio_client.put_object(
-            Bucket=settings.minio_bucket,
-            Key=f"{folder}/{os.path.basename(image_url)}",
-            Body=image_data,
-            ContentType='image/png'
+        with open(image_url, 'rb') as image_file:
+            image_data = image_file.read()
+        minio_client.put_object(
+            bucket_name=settings.minio_bucket,
+            object_name=f"{folder}/{os.path.basename(f'./assets/report_{reports_count}.png')}",
+            data=image_data,
+            length=len(image_data),
+            content_type='image/png'
         )
 
-    os.remove(image_url)
-    os.remove(filename_txt)
+    return filename_txt, filename_png

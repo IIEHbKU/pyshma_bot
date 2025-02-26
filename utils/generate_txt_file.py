@@ -28,7 +28,7 @@ async def generate_txt_report(folder, number, data_dict):
         report_lines.append(f"   | Тип элемента: {prediction.get('class')}")
         report_lines.append("   |-----------------------------|")
 
-    report_filename = f"./assets/report_{number}.txt"
+    report_filename = f"./assets/Report_#{number}.txt"
     with open(report_filename, 'w', encoding='utf-8') as file:
         for line in report_lines:
             file.write(line + '\n')

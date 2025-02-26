@@ -5,19 +5,19 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.storage.memory import MemoryStorage
 
+from core.logger import logger, init_logger
+from core.minio.initialization import MinioClient
+from core.postgres.initialization import PostgresClient
 from core.redis.initialization import RedisClient
 from core.roboflow.initialization import RoboflowClient
 from core.settings import settings
-from core.postgres.initialization import PostgresClient
-from core.minio.initialization import MinioClient
-from core.logger import logger
 from handlers import include_routers
 
 
 async def shutdown(bot: Bot):
     await PostgresClient.close_postgres()
     await RedisClient.close_redis()
-    await MinioClient.close_minio()
+    MinioClient.close_minio()
     await RoboflowClient.close_roboflow()
     await bot.session.close()
     logger.info("Bot and all resources have been successfully closed")
@@ -29,9 +29,10 @@ async def main():
     include_routers(dp)
     await bot.delete_webhook(drop_pending_updates=True)
     try:
+        init_logger()
         await PostgresClient.init_postgres()
         await RedisClient.init_redis()
-        await MinioClient.init_minio()
+        MinioClient.init_minio()
         await RoboflowClient.init_roboflow()
         await dp.start_polling(bot)
         logger.info("Bot and all resources have been successfully started")
