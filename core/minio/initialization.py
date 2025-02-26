@@ -19,6 +19,7 @@ class MinioClient:
             secret_key=settings.minio_secret_key,
             secure=settings.minio_secure
         )
+        cls.create_bucket(settings.minio_bucket)
         logger.info("Minio initialized")
 
     @classmethod
